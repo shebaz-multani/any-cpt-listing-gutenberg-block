@@ -24,16 +24,32 @@ class AnyCPTListingGutenbergBlock
 	   add_action('init', [$this, 'init_function']);
 	}
 
-    function init_function(){
-        wp_register_script( ACPTL_prefix . '-edit-block-script' , plugin_dir_url(__FILE__) . 'build/index.js' , ['wp-blocks','wp-editor', 'wp-components'] );
+    function init_function() 
+    {   
+        $edit_block_style = ACPTL_prefix . '-edit-block-style';
+        $edit_block_script = ACPTL_prefix . '-edit-block-script';
+        
+        wp_register_style( $edit_block_style , plugin_dir_url(__FILE__) . 'build/index.css'  );
+        wp_register_script( $edit_block_script, plugin_dir_url(__FILE__) . 'build/index.js' , ['wp-blocks','wp-editor', 'wp-components'] );
+
 
         register_block_type('acptlgb/any-cpt-listing', [
+            'attributes' => [
+                'post_types' => ['type' => 'object', ],
+                'selected_post_type' => ['type' => 'string', ],
+                'view_type' => ['type' => 'string','default'=> 'grid' ],
+                'posts_per_page' => ['type' => 'string','default'=> '6' ],
+                'posts_per_row' => ['type' => 'string','default'=> '3' ],
+                'rows_per_page' => ['type' => 'string','default'=> '1' ],
+            ],
             'render_callback' => [$this, 'acptlgb_callback'],
-            'editor_script' => ACPTL_prefix . '-edit-block-script',
+            'editor_script'   => $edit_block_script,
+            'editor_style'   => $edit_block_style,
         ]);
     }
 
-    function acptlgb_callback() {
+    function acptlgb_callback( $attributes )
+    {
         ob_start(); ?>
 
             <h2>Hello from PHP !!!</h2>
