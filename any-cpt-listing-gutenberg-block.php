@@ -36,10 +36,10 @@ class AnyCPTListingGutenbergBlock
         register_block_type('acptlgb/any-cpt-listing', [
             'attributes' => [
                 'post_types' => ['type' => 'object', ],
-                'selected_post_type' => ['type' => 'string', ],
+                'selected_post_type' => ['type' => 'string', 'default'=> 'posts' ],
                 'view_type' => ['type' => 'string','default'=> 'grid' ],
                 'posts_per_page' => ['type' => 'string','default'=> '6' ],
-                'posts_per_row' => ['type' => 'string','default'=> '3' ],
+                'posts_per_row' => ['type' => 'string','default'=> '33.3333' ],
                 'rows_per_page' => ['type' => 'string','default'=> '1' ],
             ],
             'render_callback' => [$this, 'acptlgb_callback'],

@@ -141,7 +141,8 @@ registerBlockType('acptlgb/any-cpt-listing', {
       type: 'object'
     },
     selected_post_type: {
-      type: "string"
+      type: "string",
+      default: "posts"
     },
     view_type: {
       type: "string",
@@ -152,6 +153,10 @@ registerBlockType('acptlgb/any-cpt-listing', {
       default: "6"
     },
     posts_per_row: {
+      type: "string",
+      default: "acpt-three-col"
+    },
+    posts_per_row_no: {
       type: "string",
       default: "3"
     },
@@ -173,6 +178,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
       view_type,
       posts_per_page,
       posts_per_row,
+      posts_per_row_no,
       rows_per_page
     } = attributes;
 
@@ -183,6 +189,8 @@ registerBlockType('acptlgb/any-cpt-listing', {
         setAttributes({
           post_types
         });
+      }).catch(error => {
+        console.error('Error:', error);
       });
       return 'Loading..';
     }
@@ -191,15 +199,53 @@ registerBlockType('acptlgb/any-cpt-listing', {
       return 'No post_types regsited!';
     }
 
+    let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
+
+    const getPostImage = async media_id => {
+      /*wp.apiFetch({ 
+      	path:'/wp/v2/media' + media_id,
+      }).then( ( media ) => {
+      	featured_media = media.description.rendered;
+      });
+      */
+      let media = await wp.apiFetch({
+        path: '/wp/v2/media/' + media_id
+      });
+      console.log('media');
+      console.log(media);
+      return media.description.rendered;
+    };
+
     if (!cpt_data) {
+      let p = {},
+          new_posts = [];
       wp.apiFetch({
-        path: '/wp/v2/' + selected_post_type
+        path: '/wp/v2/' + selected_post_type + '/?per_page=' + per_page
       }).then(posts => {
         console.log(posts);
 
         if (posts.length > 0) {
+          posts.map(function (post) {
+            let featured_media = '';
+
+            if (post.featured_media > 0) {
+              featured_media = getPostImage(post.featured_media);
+              console.log('featured_media');
+              console.log(featured_media);
+            }
+
+            p = {
+              id: post.id,
+              title: post.title.rendered,
+              excerpt: post.excerpt.rendered,
+              link: post.link,
+              featured_media
+            };
+            new_posts.push(p);
+          });
+          console.log(new_posts);
           setAttributes({
-            cpt_data: posts
+            cpt_data: new_posts
           });
         } else {
           setAttributes({
@@ -208,10 +254,31 @@ registerBlockType('acptlgb/any-cpt-listing', {
             }
           });
         }
+      }).catch(error => {
+        console.error('Error:', error);
       });
       return `Loading ${selected_post_type} data..`;
     }
 
+    const col_options = [{
+      label: '1',
+      value: 'acpt-one-col'
+    }, {
+      label: '2',
+      value: 'acpt-two-col'
+    }, {
+      label: '3',
+      value: 'acpt-three-col'
+    }, {
+      label: '4',
+      value: 'acpt-four-col'
+    }, {
+      label: '5',
+      value: 'acpt-five-col'
+    }, {
+      label: '6',
+      value: 'acpt-six-col'
+    }];
     return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(InspectorControls, {
       key: "setting"
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelBody, {
@@ -240,35 +307,44 @@ registerBlockType('acptlgb/any-cpt-listing', {
       onChange: new_view_type => setAttributes({
         view_type: new_view_type
       })
-    })), view_type == 'grid' ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
-      label: "Posts Per Page",
-      value: posts_per_page,
-      onChange: new_posts_per_page => setAttributes({
-        posts_per_page: new_posts_per_page
-      })
-    })) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
+    })), view_type == 'grid' ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(SelectControl, {
       label: "Posts Per Row",
       value: posts_per_row,
-      onChange: new_posts_per_row => setAttributes({
-        posts_per_row: new_posts_per_row
-      })
+      options: col_options,
+      onChange: new_posts_per_row => {
+        let col_label = col_options.filter(obj => {
+          return obj.value === new_posts_per_row;
+        });
+        setAttributes({
+          posts_per_row: new_posts_per_row,
+          posts_per_row_no: col_label[0].label,
+          cpt_data: ''
+        });
+      }
     })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
       label: "Rows Per Page",
       value: rows_per_page,
       onChange: new_rows_per_page => setAttributes({
         rows_per_page: new_rows_per_page
       })
-    }))))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: className + ' acptgb-main'
+    }))) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
+      label: "Posts Per Page",
+      value: posts_per_page,
+      onChange: new_posts_per_page => setAttributes({
+        posts_per_page: new_posts_per_page
+      })
+    })))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: className + ' acpt-main'
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "container"
-    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "row"
-    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "acpt-data"
+      className: "acpt-row"
     }, cpt_data.no_data ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, cpt_data.no_data) : cpt_data.map(function (post) {
-      return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, " ", post.title.rendered, " ");
-    }))))));
+      return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "acpt-post-block " + posts_per_row,
+        id: post.id
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, " ", post.title && post.title, " "), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, post.excerpt && post.excerpt.replace(/(<([^>]+)>)/ig, '')), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+        href: post.link
+      }, " Read More ")));
+    }))));
   },
   save: function () {
     return null;
