@@ -50,9 +50,11 @@ class AnyCPTListingGutenbergBlock
 
     function acptlgb_callback( $attributes )
     {
-        ob_start(); ?>
+        ob_start();
+        print_r($attributes);
+        ?>
 
-            <h2>Hello from PHP !!!</h2>
+            
 
         <?php return ob_get_clean();
     }

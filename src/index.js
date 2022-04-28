@@ -1,5 +1,6 @@
 const { registerBlockType } = wp.blocks;
 const { InspectorControls } = wp.editor;
+const { useState } = wp.element;
 import { __experimentalNumberControl as NumberControl } from '@wordpress/components';
 const { 
 		PanelBody, 
@@ -10,13 +11,13 @@ const {
 
 import './scss/editor.scss';
 
+
 registerBlockType('acptlgb/any-cpt-listing', {
 	title: 'Any CPT Listing',
 	icon: 'smiley',
 	category: 'common',
 	attributes:{
 		post_types: { type: 'object' },
-		cpt_data: { type: 'object' },
 		selected_post_type: {type: "string", default:"posts"},
 		view_type: {type: "string", default: "grid"},
 		posts_per_page: {type: "string", default: "6"},
@@ -30,7 +31,6 @@ registerBlockType('acptlgb/any-cpt-listing', {
 		const {
 			className,
 			post_types,
-			cpt_data,
 			selected_post_type,
 			view_type,
 			posts_per_page,
@@ -38,6 +38,10 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			posts_per_row_no,
 			rows_per_page,
 		} = attributes;
+        
+        const [ newCPTData, setNewCPTData ] = useState( [] );
+        // const [ postsPerRow, setPpostsPerRow ] = useState( 'acpt-three-col' );
+        // const [ rowsPerPage, setRowsPerPage ] = useState( 1 );
 
 		
 		if (!post_types) {
@@ -65,41 +69,43 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			});
 			*/
 			let media = await wp.apiFetch({ path:'/wp/v2/media/' + media_id });
-			console.log('media');
-			console.log(media)
+			// console.log('media');
+			// console.log(media)
 
 			return media.description.rendered;
 		}
+		
 
 
-		if (!cpt_data) {
-			let p = {},new_posts = [];
+		let filteredPost = {}, filteredPostsData = [];
+		if (newCPTData.length === 0) {
 			wp.apiFetch({
 				path:'/wp/v2/' + selected_post_type + '/?per_page=' + per_page ,
 			}).then( ( posts ) => {
-				console.log(posts);
 				if (posts.length > 0) {
 					posts.map(function(post) {
 						let featured_media = '';
 						if (post.featured_media > 0) {
 							featured_media =  getPostImage(post.featured_media);
-							console.log('featured_media');
-							console.log(featured_media);
+							// console.log('featured_media');
+							// console.log(featured_media);
 						}
-						p = {
+						filteredPost = {
 							id: post.id,
-							title: post.title.rendered,
-							excerpt: post.excerpt.rendered,
+							title: post.title && post.title.rendered,
+							excerpt: post.excerpt && post.excerpt.rendered.replace(/(<([^>]+)>)/ig, ''),
 							link: post.link,
 							featured_media,
 						};
-						new_posts.push(p);
+						filteredPostsData.push(filteredPost);
 					});
-					console.log(new_posts);
-					setAttributes({ cpt_data: new_posts});
 				} else { 
-					setAttributes({ cpt_data: {'no_data': `No data found in ${selected_post_type}` }});
+					filteredPostsData = {no_data: `No data found in ${selected_post_type}`};
 				}
+				setNewCPTData(filteredPostsData);
+						console.log('filteredPostsData')
+						console.log(filteredPostsData)
+
 			}).catch((error) => {
 			  console.error('Error:', error);
 			});
@@ -124,7 +130,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 					<SelectControl 
 						label="Select Post Type" 
 						value={selected_post_type} 
-						onChange={ (new_selected_post_type) => setAttributes({selected_post_type: new_selected_post_type, cpt_data:'' }) } >
+						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setNewCPTData([]); } } >
 							{ Object.keys(post_types).map(function(key) {
 								return( <option value={ post_types[key].rest_base } > { post_types[key].name } </option> )
 							}) }
@@ -150,7 +156,8 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			            		options={ col_options }
 			            		onChange={ ( new_posts_per_row ) => {
 			            			let col_label = col_options.filter(obj => { return obj.value === new_posts_per_row });
-			            			setAttributes({posts_per_row: new_posts_per_row, posts_per_row_no: col_label[0].label, cpt_data:'' })
+			            			setAttributes({posts_per_row: new_posts_per_row, posts_per_row_no: col_label[0].label}); 
+			            			setNewCPTData([]);
 			            		} }
 							/>
 						</PanelRow>
@@ -177,19 +184,20 @@ registerBlockType('acptlgb/any-cpt-listing', {
 		<div className={className + ' acpt-main'} >
 			<div className="acpt-row">
 				{ 	
-					cpt_data.no_data ?
-					<p>{ cpt_data.no_data }</p>
+					newCPTData.no_data ?
+					<p>{ newCPTData.no_data }</p>
 					:
-					cpt_data.map(function(post) {
+					newCPTData.map(function(post) {
 						return(<>
 							<div className={ "acpt-post-block " + posts_per_row } id={post.id} >
-								
-								<h3> { post.title &&  post.title } </h3>
-								<p>{ post.excerpt && post.excerpt.replace(/(<([^>]+)>)/ig, '') }</p>
+								<h3> { post.title } </h3>
+								<p>{ post.excerpt }</p>
 								<a href={ post.link } > Read More </a>  
 							</div>
 						</>)
 					})
+					
+					
 				}
 			</div>
 		</div>
