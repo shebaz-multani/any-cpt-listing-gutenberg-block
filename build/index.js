@@ -14,6 +14,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/images/placeholder.png":
+/*!************************************!*\
+  !*** ./src/images/placeholder.png ***!
+  \************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "images/placeholder.5b4e5f67.png";
+
+/***/ }),
+
 /***/ "@wordpress/components":
 /*!************************************!*\
   !*** external ["wp","components"] ***!
@@ -31,6 +41,16 @@ module.exports = window["wp"]["components"];
 /***/ (function(module) {
 
 module.exports = window["wp"]["element"];
+
+/***/ }),
+
+/***/ "@wordpress/html-entities":
+/*!**************************************!*\
+  !*** external ["wp","htmlEntities"] ***!
+  \**************************************/
+/***/ (function(module) {
+
+module.exports = window["wp"]["htmlEntities"];
 
 /***/ })
 
@@ -85,6 +105,18 @@ module.exports = window["wp"]["element"];
 /******/ 		};
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/global */
+/******/ 	!function() {
+/******/ 		__webpack_require__.g = (function() {
+/******/ 			if (typeof globalThis === 'object') return globalThis;
+/******/ 			try {
+/******/ 				return this || new Function('return this')();
+/******/ 			} catch (e) {
+/******/ 				if (typeof window === 'object') return window;
+/******/ 			}
+/******/ 		})();
+/******/ 	}();
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
@@ -101,6 +133,26 @@ module.exports = window["wp"]["element"];
 /******/ 		};
 /******/ 	}();
 /******/ 	
+/******/ 	/* webpack/runtime/publicPath */
+/******/ 	!function() {
+/******/ 		var scriptUrl;
+/******/ 		if (__webpack_require__.g.importScripts) scriptUrl = __webpack_require__.g.location + "";
+/******/ 		var document = __webpack_require__.g.document;
+/******/ 		if (!scriptUrl && document) {
+/******/ 			if (document.currentScript)
+/******/ 				scriptUrl = document.currentScript.src
+/******/ 			if (!scriptUrl) {
+/******/ 				var scripts = document.getElementsByTagName("script");
+/******/ 				if(scripts.length) scriptUrl = scripts[scripts.length - 1].src
+/******/ 			}
+/******/ 		}
+/******/ 		// When supporting browsers where an automatic publicPath is not supported you must specify an output.publicPath manually via configuration
+/******/ 		// or pass an empty string ("") and set the __webpack_public_path__ variable from your code to use your own logic.
+/******/ 		if (!scriptUrl) throw new Error("Automatic publicPath is not supported in this browser");
+/******/ 		scriptUrl = scriptUrl.replace(/#.*$/, "").replace(/\?.*$/, "").replace(/\/[^\/]+$/, "/");
+/******/ 		__webpack_require__.p = scriptUrl;
+/******/ 	}();
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
@@ -111,16 +163,20 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
-/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _scss_editor_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scss/editor.scss */ "./src/scss/editor.scss");
+/* harmony import */ var _wordpress_html_entities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/html-entities */ "@wordpress/html-entities");
+/* harmony import */ var _wordpress_html_entities__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_html_entities__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _scss_editor_scss__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./scss/editor.scss */ "./src/scss/editor.scss");
+/* harmony import */ var _images_placeholder_png__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./images/placeholder.png */ "./src/images/placeholder.png");
 
 const {
   registerBlockType
 } = wp.blocks;
+
 const {
   InspectorControls
-} = wp.editor;
+} = wp.blockEditor;
 const {
   useState
 } = wp.element;
@@ -132,14 +188,12 @@ const {
   RadioControl
 } = wp.components;
 
+
 registerBlockType('acptlgb/any-cpt-listing', {
   title: 'Any CPT Listing',
   icon: 'smiley',
   category: 'common',
   attributes: {
-    post_types: {
-      type: 'object'
-    },
     selected_post_type: {
       type: "string",
       default: "posts"
@@ -172,7 +226,6 @@ registerBlockType('acptlgb/any-cpt-listing', {
     } = _ref;
     const {
       className,
-      post_types,
       selected_post_type,
       view_type,
       posts_per_page,
@@ -180,65 +233,43 @@ registerBlockType('acptlgb/any-cpt-listing', {
       posts_per_row_no,
       rows_per_page
     } = attributes;
-    const [newCPTData, setNewCPTData] = useState([]); // const [ postsPerRow, setPpostsPerRow ] = useState( 'acpt-three-col' );
-    // const [ rowsPerPage, setRowsPerPage ] = useState( 1 );
+    const [newCPTData, setNewCPTData] = useState([]);
+    const [registeredPostsTypes, setRegisteredPostsTypes] = useState([]);
 
-    if (!post_types) {
+    if (registeredPostsTypes.length === 0) {
       wp.apiFetch({
         path: '/wp/v2/types'
       }).then(post_types => {
-        setAttributes({
-          post_types
-        });
+        setRegisteredPostsTypes(post_types);
       }).catch(error => {
         console.error('Error:', error);
       });
       return 'Loading..';
     }
 
-    if (post_types && post_types.lenght === 0) {
-      return 'No post_types regsited!';
-    }
-
     let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
-
-    const getPostImage = async media_id => {
-      /*wp.apiFetch({ 
-      	path:'/wp/v2/media' + media_id,
-      }).then( ( media ) => {
-      	featured_media = media.description.rendered;
-      });
-      */
-      let media = await wp.apiFetch({
-        path: '/wp/v2/media/' + media_id
-      }); // console.log('media');
-      // console.log(media)
-
-      return media.description.rendered;
-    };
-
     let filteredPost = {},
         filteredPostsData = [];
 
     if (newCPTData.length === 0) {
       wp.apiFetch({
-        path: '/wp/v2/' + selected_post_type + '/?per_page=' + per_page
+        path: '/wp/v2/' + selected_post_type + '/?_embed=true&per_page=' + per_page
       }).then(posts => {
         if (posts.length > 0) {
+          console.log('posts', posts);
           posts.map(function (post) {
-            let featured_media = '';
+            let featured_media_url = '';
 
             if (post.featured_media > 0) {
-              featured_media = getPostImage(post.featured_media); // console.log('featured_media');
-              // console.log(featured_media);
+              featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
             }
 
             filteredPost = {
               id: post.id,
               title: post.title && post.title.rendered,
-              excerpt: post.excerpt && post.excerpt.rendered.replace(/(<([^>]+)>)/ig, ''),
+              excerpt: post.excerpt && (0,_wordpress_html_entities__WEBPACK_IMPORTED_MODULE_1__.decodeEntities)(post.excerpt.rendered.replace(/(<([^>]+)>)/ig, '')),
               link: post.link,
-              featured_media
+              featured_media: featured_media_url
             };
             filteredPostsData.push(filteredPost);
           });
@@ -249,8 +280,6 @@ registerBlockType('acptlgb/any-cpt-listing', {
         }
 
         setNewCPTData(filteredPostsData);
-        console.log('filteredPostsData');
-        console.log(filteredPostsData);
       }).catch(error => {
         console.error('Error:', error);
       });
@@ -289,10 +318,10 @@ registerBlockType('acptlgb/any-cpt-listing', {
         });
         setNewCPTData([]);
       }
-    }, Object.keys(post_types).map(function (key) {
+    }, Object.keys(registeredPostsTypes).map(function (key) {
       return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        value: post_types[key].rest_base
-      }, " ", post_types[key].name, " ");
+        value: registeredPostsTypes[key].rest_base
+      }, " ", registeredPostsTypes[key].name, " ");
     }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(RadioControl, {
       label: "View Type",
       selected: view_type,
@@ -320,29 +349,50 @@ registerBlockType('acptlgb/any-cpt-listing', {
         });
         setNewCPTData([]);
       }
-    })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
+    })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.__experimentalNumberControl, {
       label: "Rows Per Page",
       value: rows_per_page,
-      onChange: new_rows_per_page => setAttributes({
-        rows_per_page: new_rows_per_page
-      })
-    }))) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
+      onChange: new_rows_per_page => {
+        setNewCPTData([]);
+        setAttributes({
+          rows_per_page: new_rows_per_page
+        });
+      }
+    }))) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.__experimentalNumberControl, {
       label: "Posts Per Page",
       value: posts_per_page,
-      onChange: new_posts_per_page => setAttributes({
-        posts_per_page: new_posts_per_page
-      })
+      onChange: new_posts_per_page => {
+        setNewCPTData([]);
+        setAttributes({
+          posts_per_page: new_posts_per_page
+        });
+      }
     })))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: className + ' acpt-main'
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "acpt-row"
-    }, newCPTData.no_data ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, newCPTData.no_data) : newCPTData.map(function (post) {
+    }, newCPTData.no_data ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, newCPTData.no_data) : view_type === 'grid' ? newCPTData.map(function (post) {
       return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "acpt-post-block " + posts_per_row,
-        id: post.id
-      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, " ", post.title, " "), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, post.excerpt), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+        className: "acpt-block-item " + posts_per_row + " acpt-" + view_type,
+        id: "post-" + post.id
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("figure", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
+        src: post.featured_media ? post.featured_media : _images_placeholder_png__WEBPACK_IMPORTED_MODULE_4__
+      })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "post-content"
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, post.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, post.excerpt), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
         href: post.link
-      }, " Read More ")));
+      }, " Read More "))));
+    }) : newCPTData.map(function (post) {
+      return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "acpt-block-item acpt-" + view_type,
+        id: "post-" + post.id
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("figure", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
+        src: post.featured_media ? post.featured_media : _images_placeholder_png__WEBPACK_IMPORTED_MODULE_4__
+      })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "acpt-item-content"
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, post.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, post.excerpt), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+        href: post.link
+      }, " Read More "))));
     }))));
   },
   save: function () {

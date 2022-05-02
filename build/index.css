@@ -6,31 +6,47 @@
   flex-wrap: wrap;
   -ms-flex-wrap: wrap;
 }
-.acpt-row .acpt-post-block {
+
+.acpt-block-item {
   padding: 10px;
 }
+.acpt-block-item h3 {
+  margin: 0;
+}
+.acpt-block-item figure {
+  width: 100%;
+  margin: 0;
+  margin-top: 10px;
+}
+.acpt-block-item .acpt-item-content {
+  margin-left: 15px;
+}
 
-.acpt-one-col {
+.acpt-List {
+  display: flex;
+}
+
+.acpt-grid.acpt-one-col {
   width: 100%;
 }
 
-.acpt-two-col {
+.acpt-grid.acpt-two-col {
   width: 50%;
 }
 
-.acpt-three-col {
+.acpt-grid.acpt-three-col {
   width: 33.3%;
 }
 
-.acpt-four-col {
+.acpt-grid.acpt-four-col {
   width: 25%;
 }
 
-.acpt-five-col {
+.acpt-grid.acpt-five-col {
   width: 20%;
 }
 
-.acpt-six-col {
+.acpt-grid.acpt-six-col {
   width: 16.6%;
 }
 
