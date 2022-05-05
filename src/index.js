@@ -13,9 +13,6 @@ const {
 import './scss/editor.scss';
 import placeholder from './images/placeholder.png'; 
 
-
-
-
 registerBlockType('acptlgb/any-cpt-listing', {
 	title: 'Any CPT Listing',
 	icon: 'smiley',
@@ -57,32 +54,39 @@ registerBlockType('acptlgb/any-cpt-listing', {
 		}
 		
 		let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
-		
+		per_page = per_page > 0 ? per_page : 3;
 		let filteredPost = {}, filteredPostsData = [];
 		if (newCPTData.length === 0) {
 			wp.apiFetch({
-				path:'/wp/v2/' + selected_post_type + '/?_embed=true&per_page=' + per_page ,
-			}).then( ( posts ) => {
-				if (posts.length > 0) {
-						console.log('posts', posts)
-					posts.map(function(post) {
-						let featured_media_url = '';
-						if (post.featured_media > 0) {
-							featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
-						}
-						filteredPost = {
-							id: post.id,
-							title: post.title && post.title.rendered,
-							excerpt: post.excerpt && decodeEntities(post.excerpt.rendered.replace(/(<([^>]+)>)/ig, '')),
-							link: post.link,
-							featured_media: featured_media_url,
-						};
-						filteredPostsData.push(filteredPost);
-					});
-				} else { 
-					filteredPostsData = {no_data: `No data found in ${selected_post_type}`};
-				}
-				setNewCPTData(filteredPostsData);
+				path:'/wp/v2/types',
+			}).then( ( post_type ) => {
+				let post_type_rest_base = post_type[selected_post_type].rest_base;
+				wp.apiFetch({
+					path:'/wp/v2/' + post_type_rest_base + '/?_embed=true&per_page=' + per_page,
+				}).then( ( posts ) => {
+					if (posts.length > 0) {
+							console.log('posts', posts)
+						posts.map(function(post) {
+							let featured_media_url = '';
+							if (post.featured_media > 0) {
+								featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
+							}
+							filteredPost = {
+								id: post.id,
+								title: post.title && post.title.rendered,
+								excerpt: post.excerpt && decodeEntities(post.excerpt.rendered.replace(/(<([^>]+)>)/ig, '')),
+								link: post.link,
+								featured_media: featured_media_url,
+							};
+							filteredPostsData.push(filteredPost);
+						});
+					} else { 
+						filteredPostsData = {no_data: `No data found in ${selected_post_type}`};
+					}
+					setNewCPTData(filteredPostsData);
+				}).catch((error) => {
+				  console.error('Error:', error);
+				});
 			}).catch((error) => {
 			  console.error('Error:', error);
 			});
@@ -109,7 +113,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 						value={selected_post_type} 
 						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setNewCPTData([]); } } >
 							{ Object.keys(registeredPostsTypes).map(function(key) {
-								return( <option value={ registeredPostsTypes[key].rest_base } > { registeredPostsTypes[key].name } </option> )
+								return( <option value={ registeredPostsTypes[key].slug } > { registeredPostsTypes[key].name } </option> )
 							}) }
 					</SelectControl>
 				</PanelRow>
@@ -121,7 +125,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			                { label: 'Grid View', value: 'grid' },
 			                { label: 'List List', value: 'List' },
 			            ] }
-			            onChange={ ( new_view_type ) => setAttributes({view_type: new_view_type}) }
+			            onChange={ ( new_view_type ) => { setAttributes({view_type: new_view_type, posts_per_row: new_view_type == 'grid' ? 'acpt-three-col' : '' }); setNewCPTData([]); } }
 			        />
 				</PanelRow>
 				{ view_type == 'grid' ?
@@ -140,60 +144,46 @@ registerBlockType('acptlgb/any-cpt-listing', {
 						</PanelRow>
 						<PanelRow>
 							<NumberControl 
-								label="Rows Per Page" 
-								value={rows_per_page} 
-								onChange={ (new_rows_per_page) => { setNewCPTData([]); setAttributes({rows_per_page: new_rows_per_page}); } }
+								label="Rows Per Page"
+								value={rows_per_page}
+								min="1"
+								onChange={ (new_rows_per_page) => {setAttributes({rows_per_page: new_rows_per_page}); new_rows_per_page > 0 && setNewCPTData([]);} }
 							/>
 						</PanelRow>
 					</>
 				 : 
 					<PanelRow>
 						<NumberControl 
-							label="Posts Per Page" 
-							value={posts_per_page} 
-							onChange={ (new_posts_per_page) => { setNewCPTData([]); setAttributes({posts_per_page: new_posts_per_page}); } }
+							label="Posts Per Page"
+							value={posts_per_page}
+							min="1"
+							onChange={ (new_posts_per_page) => {setAttributes({posts_per_page: new_posts_per_page}); new_posts_per_page > 0 && setNewCPTData([]);} }
 						/>
 					</PanelRow>
 				}
 			</PanelBody>
 		</InspectorControls>
 
-		<div className={className + ' acpt-main'} >
+		<div className={className + ' acpt-main acpt-editor-screen'} >
 			<div className="acpt-row">
-				{ 	
+				{
 				newCPTData.no_data ?
 				<p>{ newCPTData.no_data }</p>
 				:
-				view_type === 'grid' ? 
-					newCPTData.map(function(post) {
-						return(<>
-							<div className={ "acpt-block-item " + posts_per_row + " acpt-"+view_type } id={"post-"+post.id} >
-								<figure>
-									<img src={ post.featured_media ? post.featured_media : placeholder } />
-								</figure>
-								<div className="post-content">
-									<h3>{ post.title }</h3>
-									<p>{ post.excerpt }</p>
-									<a href={ post.link } > Read More </a>  
-								</div>
+				newCPTData.map(function(post) {
+					return(<>
+						<div className={ "acpt-block-item " + posts_per_row + " acpt-"+view_type } id={"post-"+post.id} >
+							<figure>
+								<img src={ post.featured_media ? post.featured_media : placeholder } />
+							</figure>
+							<div className="acpt-item-content">
+								<h3>{ post.title }</h3>
+								<p>{ post.excerpt }</p>
+								<a href={ post.link } > Read More </a>  
 							</div>
-						</>)
-					})
-					:
-					newCPTData.map(function(post) {
-						return(<>
-							<div className={ "acpt-block-item acpt-"+view_type } id={"post-"+post.id} >
-								<figure>
-									<img src={ post.featured_media ? post.featured_media : placeholder } />
-								</figure>
-								<div className="acpt-item-content">
-									<h3>{ post.title }</h3>
-									<p>{ post.excerpt }</p>
-									<a href={ post.link } > Read More </a>  
-								</div>
-							</div>
-						</>)
-					})
+						</div>
+					</>)
+				})
 				}
 			</div>
 		</div>
