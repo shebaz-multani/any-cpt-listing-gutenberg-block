@@ -1,22 +1,27 @@
-const { registerBlockType } = wp.blocks;
-import { decodeEntities } from '@wordpress/html-entities';
-const { InspectorControls } = wp.blockEditor;
-const { useState } = wp.element;
-import { __experimentalNumberControl as NumberControl } from '@wordpress/components';
-const { 
+import { registerBlockType } from '@wordpress/blocks';
+import { InspectorControls } from '@wordpress/block-editor';
+import { 
 		PanelBody, 
 		PanelRow, 
 		SelectControl,
-		RadioControl
-	} = wp.components;
+		RadioControl,
+		__experimentalNumberControl as NumberControl
+	} from '@wordpress/components';
+import { decodeEntities } from '@wordpress/html-entities';
+import { useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
 
-import './scss/editor.scss';
+import './scss/index.scss';
 import placeholder from './images/placeholder.png'; 
 
+
 registerBlockType('acptlgb/any-cpt-listing', {
-	title: 'Any CPT Listing',
-	icon: 'smiley',
-	category: 'common',
+	title: __('Any Post/CPT Listing','acptlgb'),
+	description: __( 'Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.' ),
+	category: 'widgets',
+	icon: 'list-view',
+	keywords: [ __( 'post' ), __( 'custom' ), __( 'cpt' ), __( 'list' ), __( 'grid' ) ],
 	attributes:{
 		selected_post_type: {type: "string", default:"posts"},
 		view_type: {type: "string", default: "grid"},
@@ -41,32 +46,35 @@ registerBlockType('acptlgb/any-cpt-listing', {
         const [ newCPTData, setNewCPTData ] = useState([]);
         const [ registeredPostsTypes, setRegisteredPostsTypes ] = useState([]);
 
-		
 		if (registeredPostsTypes.length === 0) {
-			wp.apiFetch({
-				path:'/wp/v2/types',
+			apiFetch({
+				// path:'/wp/v2/types',
+				path:'/wp/v2/available_types',
 			}).then( ( post_types ) => {
+				console.log('post_types');
+				console.log(post_types);
 				setRegisteredPostsTypes( post_types );
-			}).catch((error) => {
-			  console.error('Error:', error);
-			});
-			return 'Loading..';
+			}).catch( (error) => console.error('Error:', error) );
+			
+			return __('Loading..','acptlgb');
 		}
 		
 		let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
 		per_page = per_page > 0 ? per_page : 3;
 		let filteredPost = {}, filteredPostsData = [];
 		if (newCPTData.length === 0) {
-			wp.apiFetch({
-				path:'/wp/v2/types',
-			}).then( ( post_type ) => {
-				let post_type_rest_base = post_type[selected_post_type].rest_base;
-				wp.apiFetch({
-					path:'/wp/v2/' + post_type_rest_base + '/?_embed=true&per_page=' + per_page,
+			// apiFetch({
+				// path:'/wp/v2/types',
+			// }).then( ( post_type ) => {
+				// console.log('post_types 2nd');
+				// console.log(post_types);
+				// let post_type_rest_base = post_type[selected_post_type].rest_base;
+				apiFetch({
+					// path:'/wp/v2/' + post_type_rest_base + '/?_embed=true&per_page=' + per_page,
+					path:'/wp/v2/' + selected_post_type + '/?_embed=true&per_page=' + per_page,
 				}).then( ( posts ) => {
 					if (posts.length > 0) {
-							console.log('posts', posts)
-						posts.map(function(post) {
+						posts.map(function( post ) {
 							let featured_media_url = '';
 							if (post.featured_media > 0) {
 								featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
@@ -80,18 +88,13 @@ registerBlockType('acptlgb/any-cpt-listing', {
 							};
 							filteredPostsData.push(filteredPost);
 						});
-					} else { 
-						filteredPostsData = {no_data: `No data found in ${selected_post_type}`};
-					}
+					} else { filteredPostsData = {no_data: __(`No data found in ${selected_post_type}`,'acptlgb')}; }
 					setNewCPTData(filteredPostsData);
-				}).catch((error) => {
-				  console.error('Error:', error);
-				});
-			}).catch((error) => {
-			  console.error('Error:', error);
-			});
+				// }).catch( (error) => console.error('Error:', error) );
+				}).catch( (error) => { filteredPostsData = {no_data: __(`${selected_post_type} CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`,'acptlgb')}; setNewCPTData(filteredPostsData); } );
+			// }).catch( (error) => console.error('Error:', error) );
 
-			return `Loading ${selected_post_type} data..`;
+			// return __(`Loading ${selected_post_type} data..`,'acptlgb');
 		}
 
 		const col_options = [
@@ -105,25 +108,25 @@ registerBlockType('acptlgb/any-cpt-listing', {
 
 		return(<>
 
-		<InspectorControls key="setting">
+		<InspectorControls key="acpt-display-setting">
 			<PanelBody title={'Display Settings'}>
 				<PanelRow>
 					<SelectControl 
-						label="Select Post Type" 
+						label={ __('Select Post Type','acptlgb') }
 						value={selected_post_type} 
 						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setNewCPTData([]); } } >
 							{ Object.keys(registeredPostsTypes).map(function(key) {
-								return( <option value={ registeredPostsTypes[key].slug } > { registeredPostsTypes[key].name } </option> )
+								return( <option value={ registeredPostsTypes[key].rest_base ? registeredPostsTypes[key].rest_base : key } > { registeredPostsTypes[key].label } </option> )
 							}) }
 					</SelectControl>
 				</PanelRow>
 				<PanelRow>
 					<RadioControl
-			            label="View Type"
+			            label={ __('View Type','acptlgb') }
 			            selected={view_type}
 			            options={ [
-			                { label: 'Grid View', value: 'grid' },
-			                { label: 'List List', value: 'List' },
+			                { label: __('Grid View', 'acptlgb'), value: 'grid' },
+			                { label: __('List List', 'acptlgb'), value: 'list' },
 			            ] }
 			            onChange={ ( new_view_type ) => { setAttributes({view_type: new_view_type, posts_per_row: new_view_type == 'grid' ? 'acpt-three-col' : '' }); setNewCPTData([]); } }
 			        />
@@ -132,7 +135,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 					<>
 						<PanelRow>
 							<SelectControl
-								label="Posts Per Row" 
+								label={ __('Posts Per Row','acptlgb') }
 			            		value={posts_per_row}
 			            		options={ col_options }
 			            		onChange={ ( new_posts_per_row ) => {
@@ -144,7 +147,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 						</PanelRow>
 						<PanelRow>
 							<NumberControl 
-								label="Rows Per Page"
+								label={ __('Rows Per Page','acptlgb') }
 								value={rows_per_page}
 								min="1"
 								onChange={ (new_rows_per_page) => {setAttributes({rows_per_page: new_rows_per_page}); new_rows_per_page > 0 && setNewCPTData([]);} }
@@ -154,7 +157,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 				 : 
 					<PanelRow>
 						<NumberControl 
-							label="Posts Per Page"
+							label={ __('Posts Per Page','acptlgb') }
 							value={posts_per_page}
 							min="1"
 							onChange={ (new_posts_per_page) => {setAttributes({posts_per_page: new_posts_per_page}); new_posts_per_page > 0 && setNewCPTData([]);} }
@@ -164,29 +167,28 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			</PanelBody>
 		</InspectorControls>
 
-		<div className={className + ' acpt-main acpt-editor-screen'} >
-			<div className="acpt-row">
-				{
-				newCPTData.no_data ?
-				<p>{ newCPTData.no_data }</p>
-				:
-				newCPTData.map(function(post) {
-					return(<>
-						<div className={ "acpt-block-item " + posts_per_row + " acpt-"+view_type } id={"post-"+post.id} >
-							<figure>
-								<img src={ post.featured_media ? post.featured_media : placeholder } />
-							</figure>
-							<div className="acpt-item-content">
-								<h3>{ post.title }</h3>
-								<p>{ post.excerpt }</p>
-								<a href={ post.link } > Read More </a>  
-							</div>
-						</div>
-					</>)
-				})
-				}
+		{ newCPTData.length === 0 ? __(`Loading ${selected_post_type} data..`,'acptlgb') : 
+			<div className={className + ' acpt-main acpt-editor-screen'} >
+				<div className="acpt-row">
+					{ newCPTData.no_data ?  newCPTData.no_data :
+						newCPTData.map(function(post) {
+							return(<>
+								<div className={ "acpt-block-item " + posts_per_row + " acpt-"+view_type } id={"post-"+post.id} >
+									<figure>
+										<img src={ post.featured_media ? post.featured_media : placeholder } />
+									</figure>
+									<div className="acpt-item-content">
+										<h3>{ post.title }</h3>
+										<p>{ post.excerpt }</p>
+										<a href={ post.link } > Read More </a>  
+									</div>
+								</div>
+							</>)
+						})
+					}
+				</div>
 			</div>
-		</div>
+		}
 
 		</>);
 	},

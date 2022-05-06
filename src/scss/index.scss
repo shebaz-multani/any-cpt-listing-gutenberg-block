@@ -19,7 +19,7 @@
 	}
 }
 
-.acpt-List {
+.acpt-list {
 	display: flex;
 	.acpt-item-content {
 	    margin-left: 15px;
@@ -35,7 +35,7 @@
 .acpt-grid.acpt-six-col { max-width: 16.6%; flex: 0 0 16.6%;  }
 
 @media only screen and (max-width:767px){
-	.acpt-List {
+	.acpt-list {
 		flex-direction: column;
 	}
 	.acpt-block-item figure img{
