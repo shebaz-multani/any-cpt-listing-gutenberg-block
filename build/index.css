@@ -18,6 +18,9 @@
   margin-top: 10px;
   flex: 0 0 30%;
 }
+.acpt-block-item img {
+  max-width: 100%;
+}
 
 .acpt-list {
   display: flex;
