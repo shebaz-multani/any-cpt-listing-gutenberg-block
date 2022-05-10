@@ -31,7 +31,7 @@ class AnyCPTListingGutenbergBlock
         $edit_block_script = ACPTL_prefix . '-edit-block-script';
         
         wp_register_style( $block_style , plugin_dir_url(__FILE__) . 'build/index.css'  );
-        wp_register_script( $edit_block_script, plugin_dir_url(__FILE__) . 'build/index.js' , ['wp-blocks','wp-editor', 'wp-components'] );
+        wp_register_script( $edit_block_script, plugin_dir_url(__FILE__) . 'build/index.js', [], false, false );
 
 
         register_block_type('acptlgb/any-cpt-listing', [
@@ -71,10 +71,10 @@ class AnyCPTListingGutenbergBlock
         $per_page = $view_type === 'grid' ? $posts_per_row_no * $rows_per_page : $posts_per_page;
         $per_page = $per_page > 0 ? $per_page : 3;
         $posts = get_posts(['post_type' => $selected_post_type, 'posts_per_page' => $per_page]);
-        $placeholder_image = plugin_dir_url(__FILE__) . 'src/images/placeholder.png';
+        $placeholder_image = plugin_dir_url(__FILE__) . 'build/images/placeholder.5b4e5f67.png';
 
         
-        ob_start();  ?>
+        ob_start(); echo $selected_post_type ?>
 
         <div class="<?php echo $className; ?> acpt-main acpt-front-screen" >
             <div class="acpt-row">

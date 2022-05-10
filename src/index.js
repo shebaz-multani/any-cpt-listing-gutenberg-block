@@ -23,7 +23,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 	icon: 'list-view',
 	keywords: [ __( 'post' ), __( 'custom' ), __( 'cpt' ), __( 'list' ), __( 'grid' ) ],
 	attributes:{
-		selected_post_type: {type: "string", default:"posts"},
+		selected_post_type: {type: "string", default:"post"},
 		view_type: {type: "string", default: "grid"},
 		posts_per_page: {type: "string", default: "6"},
 		posts_per_row: {type: "string", default: "acpt-three-col"},
@@ -45,10 +45,10 @@ registerBlockType('acptlgb/any-cpt-listing', {
         
         const [ newCPTData, setNewCPTData ] = useState([]);
         const [ registeredPostsTypes, setRegisteredPostsTypes ] = useState([]);
+        const [ selectedPostTypeRestBase, setSelectedPostTypeRestBase ] = useState('posts');
 
 		if (registeredPostsTypes.length === 0) {
 			apiFetch({
-				// path:'/wp/v2/types',
 				path:'/wp/v2/available_types',
 			}).then( ( post_types ) => {
 				console.log('post_types');
@@ -63,37 +63,28 @@ registerBlockType('acptlgb/any-cpt-listing', {
 		per_page = per_page > 0 ? per_page : 3;
 		let filteredPost = {}, filteredPostsData = [];
 		if (newCPTData.length === 0) {
-			// apiFetch({
-				// path:'/wp/v2/types',
-			// }).then( ( post_type ) => {
-				// console.log('post_types 2nd');
-				// console.log(post_types);
-				// let post_type_rest_base = post_type[selected_post_type].rest_base;
-				apiFetch({
-					// path:'/wp/v2/' + post_type_rest_base + '/?_embed=true&per_page=' + per_page,
-					path:'/wp/v2/' + selected_post_type + '/?_embed=true&per_page=' + per_page,
-				}).then( ( posts ) => {
-					if (posts.length > 0) {
-						posts.map(function( post ) {
-							let featured_media_url = '';
-							if (post.featured_media > 0) {
-								featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
-							}
-							filteredPost = {
-								id: post.id,
-								title: post.title && post.title.rendered,
-								excerpt: post.excerpt && decodeEntities(post.excerpt.rendered.replace(/(<([^>]+)>)/ig, '')),
-								link: post.link,
-								featured_media: featured_media_url,
-							};
-							filteredPostsData.push(filteredPost);
-						});
-					} else { filteredPostsData = {no_data: __(`No data found in ${selected_post_type}`,'acptlgb')}; }
-					setNewCPTData(filteredPostsData);
-				// }).catch( (error) => console.error('Error:', error) );
-				}).catch( (error) => { filteredPostsData = {no_data: __(`${selected_post_type} CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`,'acptlgb')}; setNewCPTData(filteredPostsData); } );
-			// }).catch( (error) => console.error('Error:', error) );
-
+			console.log('/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page);
+			apiFetch({
+				path:'/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page,
+			}).then( ( posts ) => {
+				if (posts.length > 0) {
+					posts.map(function( post ) {
+						let featured_media_url = '';
+						if (post.featured_media > 0) {
+							featured_media_url = post._embedded['wp:featuredmedia'][0].media_details.sizes.full.source_url;
+						}
+						filteredPost = {
+							id: post.id,
+							title: post.title && post.title.rendered,
+							excerpt: post.excerpt && decodeEntities(post.excerpt.rendered.replace(/(<([^>]+)>)/ig, '')),
+							link: post.link,
+							featured_media: featured_media_url,
+						};
+						filteredPostsData.push(filteredPost);
+					});
+				} else { filteredPostsData = {no_data: __(`No data found in ${selected_post_type}`,'acptlgb')}; }
+				setNewCPTData(filteredPostsData);
+			}).catch( (error) => { filteredPostsData = {no_data: __(`<b>${selected_post_type}</b> CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`,'acptlgb')}; setNewCPTData(filteredPostsData); } );
 			// return __(`Loading ${selected_post_type} data..`,'acptlgb');
 		}
 
@@ -114,9 +105,9 @@ registerBlockType('acptlgb/any-cpt-listing', {
 					<SelectControl 
 						label={ __('Select Post Type','acptlgb') }
 						value={selected_post_type} 
-						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setNewCPTData([]); } } >
+						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setSelectedPostTypeRestBase(registeredPostsTypes[new_selected_post_type].rest_base ? registeredPostsTypes[new_selected_post_type].rest_base : new_selected_post_type); setNewCPTData([]); } } >
 							{ Object.keys(registeredPostsTypes).map(function(key) {
-								return( <option value={ registeredPostsTypes[key].rest_base ? registeredPostsTypes[key].rest_base : key } > { registeredPostsTypes[key].label } </option> )
+								return( <option data-rest={registeredPostsTypes[key].rest_base} value={ key } > { registeredPostsTypes[key].label } </option> )
 							}) }
 					</SelectControl>
 				</PanelRow>

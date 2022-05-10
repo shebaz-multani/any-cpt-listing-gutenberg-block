@@ -236,7 +236,7 @@ __webpack_require__.r(__webpack_exports__);
   attributes: {
     selected_post_type: {
       type: "string",
-      default: "posts"
+      default: "post"
     },
     view_type: {
       type: "string",
@@ -275,10 +275,10 @@ __webpack_require__.r(__webpack_exports__);
     } = attributes;
     const [newCPTData, setNewCPTData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
     const [registeredPostsTypes, setRegisteredPostsTypes] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+    const [selectedPostTypeRestBase, setSelectedPostTypeRestBase] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('posts');
 
     if (registeredPostsTypes.length === 0) {
       _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_6___default()({
-        // path:'/wp/v2/types',
         path: '/wp/v2/available_types'
       }).then(post_types => {
         console.log('post_types');
@@ -294,15 +294,9 @@ __webpack_require__.r(__webpack_exports__);
         filteredPostsData = [];
 
     if (newCPTData.length === 0) {
-      // apiFetch({
-      // path:'/wp/v2/types',
-      // }).then( ( post_type ) => {
-      // console.log('post_types 2nd');
-      // console.log(post_types);
-      // let post_type_rest_base = post_type[selected_post_type].rest_base;
+      console.log('/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page);
       _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_6___default()({
-        // path:'/wp/v2/' + post_type_rest_base + '/?_embed=true&per_page=' + per_page,
-        path: '/wp/v2/' + selected_post_type + '/?_embed=true&per_page=' + per_page
+        path: '/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page
       }).then(posts => {
         if (posts.length > 0) {
           posts.map(function (post) {
@@ -327,14 +321,13 @@ __webpack_require__.r(__webpack_exports__);
           };
         }
 
-        setNewCPTData(filteredPostsData); // }).catch( (error) => console.error('Error:', error) );
+        setNewCPTData(filteredPostsData);
       }).catch(error => {
         filteredPostsData = {
-          no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`${selected_post_type} CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`, 'acptlgb')
+          no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`<b>${selected_post_type}</b> CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`, 'acptlgb')
         };
         setNewCPTData(filteredPostsData);
-      }); // }).catch( (error) => console.error('Error:', error) );
-      // return __(`Loading ${selected_post_type} data..`,'acptlgb');
+      }); // return __(`Loading ${selected_post_type} data..`,'acptlgb');
     }
 
     const col_options = [{
@@ -367,11 +360,13 @@ __webpack_require__.r(__webpack_exports__);
         setAttributes({
           selected_post_type: new_selected_post_type
         });
+        setSelectedPostTypeRestBase(registeredPostsTypes[new_selected_post_type].rest_base ? registeredPostsTypes[new_selected_post_type].rest_base : new_selected_post_type);
         setNewCPTData([]);
       }
     }, Object.keys(registeredPostsTypes).map(function (key) {
       return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        value: registeredPostsTypes[key].rest_base ? registeredPostsTypes[key].rest_base : key
+        "data-rest": registeredPostsTypes[key].rest_base,
+        value: key
       }, " ", registeredPostsTypes[key].label, " ");
     }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.RadioControl, {
       label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('View Type', 'acptlgb'),
