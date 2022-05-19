@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Plugin Name: Any Post/CPT Listing - Gutenberg Block
+ * Plugin Name: Any CPT Listing Block
  * Description: Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.
  * Version:     1.0.0
  * Author:      Shebaz Multani
- * Text Domain: acptlgb
+ * Text Domain: any-cpt-listing-block
  * Domain Path: /languages
  */
 
@@ -73,10 +73,9 @@ class AnyCPTListingGutenbergBlock
         $posts = get_posts(['post_type' => $selected_post_type, 'posts_per_page' => $per_page]);
         $placeholder_image = plugin_dir_url(__FILE__) . 'build/images/placeholder.5b4e5f67.png';
 
-        
-        ob_start(); echo $selected_post_type ?>
+        ob_start(); ?>
 
-        <div class="<?php echo $className; ?> acpt-main acpt-front-screen" >
+        <div class="<?php echo esc_attr($className); ?> acpt-main acpt-front-screen" >
             <div class="acpt-row">
                 <?php if(!empty($posts)) {
                     foreach ($posts as $post) {
@@ -87,19 +86,19 @@ class AnyCPTListingGutenbergBlock
                         $post_excerpt = get_the_excerpt($post_id);
                         $post_link = get_permalink($post_id);
                         ?>
-                        <div class='acpt-block-item <?php echo "acpt-$view_type $posts_per_row"; ?>' id='<?php echo "post-". $post_id; ?>' >
+                        <div class='acpt-block-item <?php echo "acpt-" . esc_html($view_type) . " " . esc_html($posts_per_row); ?>' id='<?php echo "post-". esc_html($post_id); ?>' >
                             <figure>
-                                <img src= <?php echo $featured_image; ?> />
+                                <img src= <?php echo esc_url($featured_image); ?> />
                             </figure>
                             <div class="acpt-item-content">
-                                <h3><?php echo $post_title; ?></h3>
-                                <p><?php echo $post_excerpt; ?></p>
-                                <a href="<?php echo $post_link; ?>">Read More</a>
+                                <h3><?php echo esc_html($post_title); ?></h3>
+                                <p><?php echo esc_html($post_excerpt); ?></p>
+                                <a href="<?php echo esc_url($post_link); ?>">Read More</a>
                             </div>
                         </div>
                     <?php }
                 } else {
-                    echo __("<p>No data found in <b>$selected_post_type</b></p>", 'acptlgb');
+                    echo __("<p>No data found in <b>" . esc_html($selected_post_type) ."</b></p>", 'any-cpt-listing-block');
                 } ?>
             </div>
         </div>

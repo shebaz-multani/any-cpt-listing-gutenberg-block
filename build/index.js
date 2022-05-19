@@ -228,11 +228,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 (0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_1__.registerBlockType)('acptlgb/any-cpt-listing', {
-  title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Any Post/CPT Listing', 'acptlgb'),
-  description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.'),
+  title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Any Post/CPT Listing', 'any-cpt-listing-block'),
+  description: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.', 'any-cpt-listing-block'),
   category: 'widgets',
   icon: 'list-view',
-  keywords: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('post'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('custom'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('cpt'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('list'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('grid')],
+  keywords: [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('post', 'any-cpt-listing-block'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('custom', 'any-cpt-listing-block'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('cpt', 'any-cpt-listing-block'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('list', 'any-cpt-listing-block'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('grid', 'any-cpt-listing-block')],
   attributes: {
     selected_post_type: {
       type: "string",
@@ -275,17 +275,16 @@ __webpack_require__.r(__webpack_exports__);
     } = attributes;
     const [newCPTData, setNewCPTData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
     const [registeredPostsTypes, setRegisteredPostsTypes] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-    const [selectedPostTypeRestBase, setSelectedPostTypeRestBase] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('posts');
+    let initSelectedPostTypeRestBase = selected_post_type != 'post' ? selected_post_type : 'posts';
+    const [selectedPostTypeRestBase, setSelectedPostTypeRestBase] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(initSelectedPostTypeRestBase);
 
     if (registeredPostsTypes.length === 0) {
       _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_6___default()({
         path: '/wp/v2/available_types'
       }).then(post_types => {
-        console.log('post_types');
-        console.log(post_types);
         setRegisteredPostsTypes(post_types);
       }).catch(error => console.error('Error:', error));
-      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Loading..', 'acptlgb');
+      return (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Loading..', 'any-cpt-listing-block');
     }
 
     let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
@@ -294,7 +293,6 @@ __webpack_require__.r(__webpack_exports__);
         filteredPostsData = [];
 
     if (newCPTData.length === 0) {
-      console.log('/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page);
       _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_6___default()({
         path: '/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page
       }).then(posts => {
@@ -317,17 +315,17 @@ __webpack_require__.r(__webpack_exports__);
           });
         } else {
           filteredPostsData = {
-            no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`No data found in ${selected_post_type}`, 'acptlgb')
+            no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`No data found in ${selected_post_type}`, 'any-cpt-listing-block')
           };
         }
 
         setNewCPTData(filteredPostsData);
       }).catch(error => {
         filteredPostsData = {
-          no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`<b>${selected_post_type}</b> CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`, 'acptlgb')
+          no_data: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`${selected_post_type} CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`, 'any-cpt-listing-block')
         };
         setNewCPTData(filteredPostsData);
-      }); // return __(`Loading ${selected_post_type} data..`,'acptlgb');
+      }); // return __(`Loading ${selected_post_type} data..`,'any-cpt-listing-block');
     }
 
     const col_options = [{
@@ -354,7 +352,7 @@ __webpack_require__.r(__webpack_exports__);
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
       title: 'Display Settings'
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
-      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Select Post Type', 'acptlgb'),
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Select Post Type', 'any-cpt-listing-block'),
       value: selected_post_type,
       onChange: new_selected_post_type => {
         setAttributes({
@@ -369,13 +367,13 @@ __webpack_require__.r(__webpack_exports__);
         value: key
       }, " ", registeredPostsTypes[key].label, " ");
     }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.RadioControl, {
-      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('View Type', 'acptlgb'),
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('View Type', 'any-cpt-listing-block'),
       selected: view_type,
       options: [{
-        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Grid View', 'acptlgb'),
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Grid View', 'any-cpt-listing-block'),
         value: 'grid'
       }, {
-        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('List List', 'acptlgb'),
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('List List', 'any-cpt-listing-block'),
         value: 'list'
       }],
       onChange: new_view_type => {
@@ -386,7 +384,7 @@ __webpack_require__.r(__webpack_exports__);
         setNewCPTData([]);
       }
     })), view_type == 'grid' ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.SelectControl, {
-      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Posts Per Row', 'acptlgb'),
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Posts Per Row', 'any-cpt-listing-block'),
       value: posts_per_row,
       options: col_options,
       onChange: new_posts_per_row => {
@@ -400,7 +398,7 @@ __webpack_require__.r(__webpack_exports__);
         setNewCPTData([]);
       }
     })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.__experimentalNumberControl, {
-      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Rows Per Page', 'acptlgb'),
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Rows Per Page', 'any-cpt-listing-block'),
       value: rows_per_page,
       min: "1",
       onChange: new_rows_per_page => {
@@ -410,7 +408,7 @@ __webpack_require__.r(__webpack_exports__);
         new_rows_per_page > 0 && setNewCPTData([]);
       }
     }))) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelRow, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.__experimentalNumberControl, {
-      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Posts Per Page', 'acptlgb'),
+      label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)('Posts Per Page', 'any-cpt-listing-block'),
       value: posts_per_page,
       min: "1",
       onChange: new_posts_per_page => {
@@ -419,7 +417,7 @@ __webpack_require__.r(__webpack_exports__);
         });
         new_posts_per_page > 0 && setNewCPTData([]);
       }
-    })))), newCPTData.length === 0 ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`Loading ${selected_post_type} data..`, 'acptlgb') : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    })))), newCPTData.length === 0 ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_5__.__)(`Loading ${selected_post_type} data..`, 'any-cpt-listing-block') : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: className + ' acpt-main acpt-editor-screen'
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "acpt-row"

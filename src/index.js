@@ -17,11 +17,11 @@ import placeholder from './images/placeholder.png';
 
 
 registerBlockType('acptlgb/any-cpt-listing', {
-	title: __('Any Post/CPT Listing','acptlgb'),
-	description: __( 'Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.' ),
+	title: __('Any Post/CPT Listing', 'any-cpt-listing-block'),
+	description: __( 'Show list or grid view of any kind of wp post type including default posts as well as custom post types in front end also with verity of settings.', 'any-cpt-listing-block' ),
 	category: 'widgets',
 	icon: 'list-view',
-	keywords: [ __( 'post' ), __( 'custom' ), __( 'cpt' ), __( 'list' ), __( 'grid' ) ],
+	keywords: [ __( 'post', 'any-cpt-listing-block' ), __( 'custom', 'any-cpt-listing-block' ), __( 'cpt', 'any-cpt-listing-block' ), __( 'list', 'any-cpt-listing-block' ), __( 'grid', 'any-cpt-listing-block' ) ],
 	attributes:{
 		selected_post_type: {type: "string", default:"post"},
 		view_type: {type: "string", default: "grid"},
@@ -45,25 +45,24 @@ registerBlockType('acptlgb/any-cpt-listing', {
         
         const [ newCPTData, setNewCPTData ] = useState([]);
         const [ registeredPostsTypes, setRegisteredPostsTypes ] = useState([]);
-        const [ selectedPostTypeRestBase, setSelectedPostTypeRestBase ] = useState('posts');
+
+        let initSelectedPostTypeRestBase = selected_post_type != 'post' ? selected_post_type : 'posts'; 
+        const [ selectedPostTypeRestBase, setSelectedPostTypeRestBase ] = useState(initSelectedPostTypeRestBase);
 
 		if (registeredPostsTypes.length === 0) {
 			apiFetch({
 				path:'/wp/v2/available_types',
 			}).then( ( post_types ) => {
-				console.log('post_types');
-				console.log(post_types);
 				setRegisteredPostsTypes( post_types );
 			}).catch( (error) => console.error('Error:', error) );
 			
-			return __('Loading..','acptlgb');
+			return __('Loading..','any-cpt-listing-block');
 		}
 		
 		let per_page = view_type === 'grid' ? posts_per_row_no * rows_per_page : posts_per_page;
 		per_page = per_page > 0 ? per_page : 3;
 		let filteredPost = {}, filteredPostsData = [];
 		if (newCPTData.length === 0) {
-			console.log('/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page);
 			apiFetch({
 				path:'/wp/v2/' + selectedPostTypeRestBase + '/?_embed=true&per_page=' + per_page,
 			}).then( ( posts ) => {
@@ -82,10 +81,10 @@ registerBlockType('acptlgb/any-cpt-listing', {
 						};
 						filteredPostsData.push(filteredPost);
 					});
-				} else { filteredPostsData = {no_data: __(`No data found in ${selected_post_type}`,'acptlgb')}; }
+				} else { filteredPostsData = {no_data: __(`No data found in ${selected_post_type}`,'any-cpt-listing-block')}; }
 				setNewCPTData(filteredPostsData);
-			}).catch( (error) => { filteredPostsData = {no_data: __(`<b>${selected_post_type}</b> CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`,'acptlgb')}; setNewCPTData(filteredPostsData); } );
-			// return __(`Loading ${selected_post_type} data..`,'acptlgb');
+			}).catch( (error) => { filteredPostsData = {no_data: __(`${selected_post_type} CPT rest route is not enable, please enable to show here. However, CPT will be still displayed on frontend.`,'any-cpt-listing-block')}; setNewCPTData(filteredPostsData); } );
+			// return __(`Loading ${selected_post_type} data..`,'any-cpt-listing-block');
 		}
 
 		const col_options = [
@@ -103,7 +102,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			<PanelBody title={'Display Settings'}>
 				<PanelRow>
 					<SelectControl 
-						label={ __('Select Post Type','acptlgb') }
+						label={ __('Select Post Type','any-cpt-listing-block') }
 						value={selected_post_type} 
 						onChange={ (new_selected_post_type) => { setAttributes({selected_post_type: new_selected_post_type}); setSelectedPostTypeRestBase(registeredPostsTypes[new_selected_post_type].rest_base ? registeredPostsTypes[new_selected_post_type].rest_base : new_selected_post_type); setNewCPTData([]); } } >
 							{ Object.keys(registeredPostsTypes).map(function(key) {
@@ -113,11 +112,11 @@ registerBlockType('acptlgb/any-cpt-listing', {
 				</PanelRow>
 				<PanelRow>
 					<RadioControl
-			            label={ __('View Type','acptlgb') }
+			            label={ __('View Type','any-cpt-listing-block') }
 			            selected={view_type}
 			            options={ [
-			                { label: __('Grid View', 'acptlgb'), value: 'grid' },
-			                { label: __('List List', 'acptlgb'), value: 'list' },
+			                { label: __('Grid View', 'any-cpt-listing-block'), value: 'grid' },
+			                { label: __('List List', 'any-cpt-listing-block'), value: 'list' },
 			            ] }
 			            onChange={ ( new_view_type ) => { setAttributes({view_type: new_view_type, posts_per_row: new_view_type == 'grid' ? 'acpt-three-col' : '' }); setNewCPTData([]); } }
 			        />
@@ -126,7 +125,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 					<>
 						<PanelRow>
 							<SelectControl
-								label={ __('Posts Per Row','acptlgb') }
+								label={ __('Posts Per Row','any-cpt-listing-block') }
 			            		value={posts_per_row}
 			            		options={ col_options }
 			            		onChange={ ( new_posts_per_row ) => {
@@ -138,7 +137,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 						</PanelRow>
 						<PanelRow>
 							<NumberControl 
-								label={ __('Rows Per Page','acptlgb') }
+								label={ __('Rows Per Page','any-cpt-listing-block') }
 								value={rows_per_page}
 								min="1"
 								onChange={ (new_rows_per_page) => {setAttributes({rows_per_page: new_rows_per_page}); new_rows_per_page > 0 && setNewCPTData([]);} }
@@ -148,7 +147,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 				 : 
 					<PanelRow>
 						<NumberControl 
-							label={ __('Posts Per Page','acptlgb') }
+							label={ __('Posts Per Page','any-cpt-listing-block') }
 							value={posts_per_page}
 							min="1"
 							onChange={ (new_posts_per_page) => {setAttributes({posts_per_page: new_posts_per_page}); new_posts_per_page > 0 && setNewCPTData([]);} }
@@ -158,7 +157,7 @@ registerBlockType('acptlgb/any-cpt-listing', {
 			</PanelBody>
 		</InspectorControls>
 
-		{ newCPTData.length === 0 ? __(`Loading ${selected_post_type} data..`,'acptlgb') : 
+		{ newCPTData.length === 0 ? __(`Loading ${selected_post_type} data..`,'any-cpt-listing-block') : 
 			<div className={className + ' acpt-main acpt-editor-screen'} >
 				<div className="acpt-row">
 					{ newCPTData.no_data ?  newCPTData.no_data :
